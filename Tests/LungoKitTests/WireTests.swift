@@ -133,7 +133,8 @@ final class WireTests: XCTestCase {
         return String(decoding: data, as: UTF8.self)
     }
 
-    func testValidVectorsRoundTrip() throws {
+    // TEST0001: valid Vectors Round Trip
+    func test0001_ValidVectorsRoundTrip() throws {
         var checked = 0
         for v in try values() {
             var tr = LungoReader(WireTests.hex(v["type"] as! String), program: nil)
@@ -150,7 +151,8 @@ final class WireTests: XCTestCase {
         XCTAssertGreaterThan(checked, 40)
     }
 
-    func testInvalidVectorsAreRejected() throws {
+    // TEST0002: invalid Vectors Are Rejected
+    func test0002_InvalidVectorsAreRejected() throws {
         for v in try vectors().invalid {
             var tr = LungoReader(WireTests.hex(v.type), program: nil)
             var r = LungoReader(WireTests.hex(v.bytes), program: nil)
@@ -170,7 +172,8 @@ final class WireTests: XCTestCase {
         }
     }
 
-    func testNumbers() {
+    // TEST0266: numbers
+    func test0266_Numbers() {
         let big = LungoNat("1606938044258990275541962092341162602522202993782792835301376")!
         XCTAssertEqual(big.description, "1606938044258990275541962092341162602522202993782792835301376")
         XCTAssertNil(big.uint64)
