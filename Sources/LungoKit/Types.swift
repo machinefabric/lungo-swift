@@ -130,7 +130,7 @@ public enum Lungo {
 
     public static let opaque = LungoType<LungoOpaque>(
         expr: [Tag.opaque],
-        encode: { w, v in w.u64(try w.result ? v.handle.clone() : v.handle.live()) },
+        encode: { w, v in w.u64(try w.handle(v.handle)) },
         decode: { r in LungoOpaque(LungoHandle(try r.u64())) })
 
     /// `Option α`.
