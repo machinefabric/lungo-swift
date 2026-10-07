@@ -144,6 +144,7 @@ public final class LungoProgram: @unchecked Sendable {
         typeArgs.forEach { w.raw($0) }
         try args(&w)
         let (status, out) = w.bytes.withUnsafeBufferPointer { call($0.baseAddress, $0.count) }
+        withExtendedLifetime(w.lent) {}
         return try result(status, out, returns.read)
     }
 
@@ -180,6 +181,7 @@ public final class LungoProgram: @unchecked Sendable {
         }
         let out = take(&buf)
         withExtendedLifetime(handle) {}
+        withExtendedLifetime(w.lent) {}
         return try result(status, out) { try read.decode(&$0) }
     }
 

@@ -6,6 +6,20 @@ public struct LungoWriter {
     let result: Bool
     /// Host functions registered for the call, released when it returns.
     var temps: [UInt64] = []
+    /// The handles whose identifiers the arguments carry, kept alive until the
+    /// call returns. An identifier is only a number: a handle released after
+    /// its id was written and before the runtime read it is a dead argument —
+    /// what lungo-go's finalizer did ("… is not a live handle"), and what ARC
+    /// may do here once an argument's last use is its encoding.
+    var lent: [LungoHandle] = []
+
+    /// The identifier of `handle`: lent for an argument, a clone given away
+    /// for a result.
+    mutating func handle(_ handle: LungoHandle) throws -> UInt64 {
+        if result { return try handle.clone() }
+        lent.append(handle)
+        return try handle.live()
+    }
 
     init(program: LungoProgram?, result: Bool) {
         self.program = program
