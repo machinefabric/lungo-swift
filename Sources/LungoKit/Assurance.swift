@@ -35,6 +35,8 @@ public struct LungoAssurance: Codable, Sendable, Equatable {
         public let name: String
         public let kind: String
         public let statement: String
+        /// The body, as Lean prints it, when the declaration is a definition.
+        public let definition: String?
         public let package: String?
         public let fingerprint: String
         public let source: Source?
@@ -62,6 +64,8 @@ public struct LungoAssurance: Codable, Sendable, Equatable {
         public let name: String
         public let facility: String
         public let statement: String
+        /// The body, as Lean prints it, when the declaration is a definition.
+        public let definition: String?
         public let package: String?
         public let fingerprint: String
         public let source: Source?
@@ -131,7 +135,8 @@ public struct LungoAssurance: Codable, Sendable, Equatable {
     public let roles: [Role]
     public let exports: [Export]
 
-    /// Reads an assurance document, refusing one of another schema version.
+    /// Reads an assurance document, refusing one of another schema version, and one with a field
+    /// this library does not know or without one it requires, as lungo's other readers do.
     public static func decode(_ json: String) throws -> LungoAssurance {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -141,7 +146,88 @@ public struct LungoAssurance: Codable, Sendable, Equatable {
         guard version.schemaVersion == schemaVersion else {
             throw LungoMalformed("assurance schema version \(version.schemaVersion); this library reads version \(schemaVersion)")
         }
+        try Shape.document.check(try JSONSerialization.jsonObject(with: data), at: "document")
         return try decoder.decode(LungoAssurance.self, from: data)
+    }
+
+    /// The schema of the document: each object's fields, with the shape of each.
+    indirect enum Shape: Sendable {
+        case string, number, boolean
+        case object([String: Shape])
+        case array(Shape)
+        case nullable(Shape)
+
+        static let strings = Shape.array(.string)
+        static let position = Shape.object(["line": .number, "column": .number])
+        static let source = Shape.nullable(.object([
+            "package": .string, "file": .string, "start": .nullable(position), "end": .nullable(position),
+        ]))
+        static let document = Shape.object([
+            "schema_version": .number,
+            "program": .string,
+            "provenance": .object([
+                "lean_version": .string, "lean_githash": .string, "lungo_version": .string,
+                "bir_version": .number, "runtime_abi": .number,
+            ]),
+            "library": .nullable(.object(["package": .string, "schema_version": .number])),
+            "specifications": .array(.object([
+                "name": .string, "kind": .string, "statement": .string, "definition": .nullable(.string),
+                "package": .nullable(.string), "fingerprint": .string, "source": source,
+            ])),
+            "facilities": .array(.object([
+                "name": .string, "id": .string, "form": .string, "op_type": .nullable(.string),
+                "operations": .array(.object([
+                    "name": .string, "symbol": .nullable(.string), "fingerprint": .nullable(.string),
+                ])),
+                "assumptions": strings, "package": .nullable(.string), "fingerprint": .string, "source": source,
+            ])),
+            "assumptions": .array(.object([
+                "name": .string, "facility": .string, "statement": .string, "definition": .nullable(.string),
+                "package": .nullable(.string), "fingerprint": .string, "source": source,
+            ])),
+            "claims": .array(.object([
+                "name": .string, "relation": .string, "subjects": strings, "specifications": strings,
+                "statement": .string, "status": .string,
+                "evidence_trust": .object(["axioms": strings, "depends_on_sorry": .boolean]),
+                "assumptions": strings, "package": .nullable(.string), "fingerprint": .string, "source": source,
+            ])),
+            "roles": .array(.object(["name": .string, "role": .string, "exported": .boolean])),
+            "exports": .array(.object([
+                "name": .string, "module": .string, "async": .boolean,
+                "trust": .object([
+                    "axioms": strings, "depends_on_sorry": .boolean, "unsafe_dependencies": strings,
+                    "partial_dependencies": strings, "extern_dependencies": strings,
+                ]),
+                "claims": strings, "assumptions": strings, "facilities": strings, "roles": strings, "source": source,
+            ])),
+        ])
+
+        /// Throws unless `value` (as `JSONSerialization` reads it) has this shape.
+        func check(_ value: Any, at path: String) throws {
+            func fail(_ what: String) -> LungoMalformed { LungoMalformed("the assurance document's \(path) \(what)") }
+            switch self {
+            case .string:
+                guard value is String else { throw fail("is not a string") }
+            case .number:
+                guard let n = value as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID() else { throw fail("is not a number") }
+            case .boolean:
+                guard let n = value as? NSNumber, CFGetTypeID(n) == CFBooleanGetTypeID() else { throw fail("is not a boolean") }
+            case .nullable(let shape):
+                if !(value is NSNull) { try shape.check(value, at: path) }
+            case .array(let shape):
+                guard let items = value as? [Any] else { throw fail("is not an array") }
+                for (i, x) in items.enumerated() { try shape.check(x, at: "\(path)[\(i)]") }
+            case .object(let fields):
+                guard let object = value as? [String: Any] else { throw fail("is not an object") }
+                for key in object.keys.sorted() where fields[key] == nil {
+                    throw fail("has the field \(key), which this library does not know")
+                }
+                for (key, shape) in fields.sorted(by: { $0.key < $1.key }) {
+                    guard let v = object[key] else { throw fail("lacks the field \(key)") }
+                    try shape.check(v, at: "\(path).\(key)")
+                }
+            }
+        }
     }
 
     /// The claim whose evidence is `name`.
