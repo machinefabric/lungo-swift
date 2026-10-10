@@ -46,7 +46,7 @@ public struct LungoAssurance: Codable, Sendable, Equatable {
         public let fingerprint: String?
     }
 
-    public struct Capability: Codable, Sendable, Equatable {
+    public struct Facility: Codable, Sendable, Equatable {
         public let name: String
         public let id: String
         public let form: String
@@ -60,7 +60,7 @@ public struct LungoAssurance: Codable, Sendable, Equatable {
 
     public struct Assumption: Codable, Sendable, Equatable {
         public let name: String
-        public let capability: String
+        public let facility: String
         public let statement: String
         public let package: String?
         public let fingerprint: String
@@ -110,12 +110,12 @@ public struct LungoAssurance: Codable, Sendable, Equatable {
         public let trust: Trust
         public let claims: [String]
         public let assumptions: [String]
-        public let capabilities: [String]
+        public let facilities: [String]
         public let roles: [String]
         public let source: Source?
 
         enum CodingKeys: String, CodingKey {
-            case name, module, trust, claims, assumptions, capabilities, roles, source
+            case name, module, trust, claims, assumptions, facilities, roles, source
             case isAsync = "async"
         }
     }
@@ -125,7 +125,7 @@ public struct LungoAssurance: Codable, Sendable, Equatable {
     public let provenance: Provenance
     public let library: Library?
     public let specifications: [Specification]
-    public let capabilities: [Capability]
+    public let facilities: [Facility]
     public let assumptions: [Assumption]
     public let claims: [Claim]
     public let roles: [Role]

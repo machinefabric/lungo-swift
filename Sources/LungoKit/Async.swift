@@ -9,7 +9,7 @@ public struct LungoAnswer {
     public init(_ write: @escaping (inout LungoWriter) throws -> Void) { self.write = write }
 }
 
-/// The capabilities the host has installed, by identifier. Generated packages keep one.
+/// The facilities the host has installed, by identifier. Generated packages keep one.
 public final class LungoInstalled: @unchecked Sendable {
     private let lock = NSLock()
     private var ids: Set<String> = []
@@ -22,11 +22,11 @@ public final class LungoInstalled: @unchecked Sendable {
         ids.insert(id)
     }
 
-    /// Throws unless the capability `id` is installed; `operation` names one of its operations.
+    /// Throws unless the facility `id` is installed; `operation` names one of its operations.
     public func check(_ id: String, operation: String) throws {
         lock.lock()
         defer { lock.unlock() }
-        guard ids.contains(id) else { throw LungoMissingCapability(capability: id, operation: operation) }
+        guard ids.contains(id) else { throw LungoMissingFacility(facility: id, operation: operation) }
     }
 }
 

@@ -43,18 +43,18 @@ public struct LungoHostError: Error, CustomStringConvertible, Sendable {
     public var description: String { message }
 }
 
-/// A call before the host installed a capability the program needs; `operation` is one of its
+/// A call before the host installed a facility the program needs; `operation` is one of its
 /// operations.
-public struct LungoMissingCapability: Error, CustomStringConvertible, Sendable {
-    public let capability: String
+public struct LungoMissingFacility: Error, CustomStringConvertible, Sendable {
+    public let facility: String
     public let operation: String
 
-    public init(capability: String, operation: String) {
-        self.capability = capability
+    public init(facility: String, operation: String) {
+        self.facility = facility
         self.operation = operation
     }
 
     public var description: String {
-        "the host does not provide the capability \(capability) (its operation \(operation)): install it before calling the program"
+        "the host does not provide the facility \(facility) (its operation \(operation)): install it before calling the program"
     }
 }
