@@ -1,6 +1,6 @@
 // swift-tools-version:5.9
 // The Swift support library of the packages lungo generates from Lean programs: LungoKit, on
-// the lungo runtime (LungoRuntime, an XCFramework). Written by lungo-dist for release 1.115.34.
+// the lungo runtime (LungoRuntime, an XCFramework). Written by lungo-dist for release 1.116.0.
 import PackageDescription
 
 let package = Package(
@@ -10,7 +10,7 @@ let package = Package(
         .library(name: "LungoKit", targets: ["LungoKit"])
     ],
     targets: [
-        .binaryTarget(name: "LungoRuntime", url: "https://release.machinefabric.com/lungo-runtime/release/1.115.34/LungoRuntime-1.115.34.xcframework.zip", checksum: "a5242172877ea6daaf894d9ab5e8bbce999cc1c82ae3319c897385fa347f5fd0"),
+        .binaryTarget(name: "LungoRuntime", url: "https://release.machinefabric.com/lungo-runtime/release/1.116.0/LungoRuntime-1.116.0.xcframework.zip", checksum: "fc1c1ac8924c80ec4090a57749d0f192b2c50b202bcf9550d7b884529a64f929"),
         .target(
             name: "LungoKit",
             dependencies: ["LungoRuntime"],
