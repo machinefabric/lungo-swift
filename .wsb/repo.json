@@ -1,0 +1,10 @@
+{
+  "name": "lungo-swift",
+  "alias": "lungo_swift",
+  "templates_root": "../..",
+  "version": {
+    "major": 1,
+    "file": "version.txt",
+    "detect_manifests": true
+  }
+}
